@@ -22,6 +22,8 @@ pragma solidity ^0.8.17;
 * @notice This contract is very loosely based on the MakerDao DSS(DAI) system.
 */
 
+// Deal with this tommorow
+
 contract DSCEngine {
     function depositCollateralAndMintDsc() external {}
 
