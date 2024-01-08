@@ -112,7 +112,9 @@ contract DSCEngine is ReentrancyGuard {
 
     function redeemCollateralForDsc() external {}
 
-    function mintDsc() external {}
+    function mintDsc(uint256 amountDscToMint) external morethanZero(amountDscToMint) nonReentrant {
+        // Check if the collateral value > DSC amount. e.g priceFeeds, value
+    }
 
     function burnDsc() external {}
 
