@@ -7,8 +7,6 @@ import {DecentralizedStableCoin} from "../src/DecentralizedStableCoin.sol";
 import {DSCEngine} from "../src/DSCEngine.sol";
 import {HelperConfig} from "../script/HelperConfig.s.sol";
 
-
-
 contract Deploydsc is Script {
     DecentralizedStableCoin dsc;
     DSCEngine engine;
@@ -16,9 +14,7 @@ contract Deploydsc is Script {
     address[] public tokenAddresses;
     address[] public priceFeedAddresses;
 
-    // continue tommorow tommmorow tommorow
-
-    function run() external returns (DecentralizedStableCoin, DSCEngine) {
+    function run() external returns (DecentralizedStableCoin, DSCEngine, HelperConfig) {
         config = new HelperConfig();
 
         (address wethUsdPriceFeed, address wbtcUsdPriceFeed, address weth, address wbtc, uint256 deployerKey) =
