@@ -60,6 +60,8 @@ contract DSCEngine is ReentrancyGuard {
 
     event CollateralDeposited(address indexed user, address indexed token, uint256 indexed amount);
 
+    event CollateralRedeemed(address indexed user, address indexed token, uint256 indexed amount);
+
     ///////////////
     // Modifiers //
 
@@ -136,7 +138,38 @@ contract DSCEngine is ReentrancyGuard {
         }
     }
 
-    function redeemCollateralForDsc() external {}
+    /*
+    * @param tokenCollateralAddress The collateral address to redeem
+    * @param amountCollateral The amount of collateral to redeem
+    * @param amountDscToBurn The amount of Dsc to burn
+    * This function burns Dsc and redeems underlying collateral in one transaction
+    */
+
+    function redeemCollateralForDsc(address tokenCollateralAddress, uint256 amountCollateral, uint256 amountDscToBurn)
+        external
+    {
+        burnDsc(amountDscToBurn);
+        redeemCollateral(tokenCollateralAddress, amountCollateral);
+    }
+
+    // In order to redeem collateral:
+    // 1. health factor must be over 1 after collateral pulled
+    function redeemCollateral(address tokenCollateralAddress, uint256 amountCollateral)
+        public
+        morethanZero(amountCollateral)
+        nonReentrant
+    {
+        s_collateralDeposited[msg.sender][tokenCollateralAddress] -= amountCollateral;
+        emit CollateralRedeemed(msg.sender, tokenCollateralAddress, amountCollateral);
+
+        bool success = IERC20(tokenCollateralAddress).transfer(msg.sender, amountCollateral);
+
+        if (!success) {
+            revert DSCEngine__TransferFailed();
+        }
+
+        _revertIfHealthFactorIsBroken(msg.sender);
+    }
 
     /*
     * @notice follows CEI
@@ -155,7 +188,17 @@ contract DSCEngine is ReentrancyGuard {
         }
     }
 
-    function burnDsc() external {}
+    //  Do we need to check if this breaks health factor
+    function burnDsc(uint256 amount) public morethanZero(amount) {
+        s_DSCMinted[msg.sender] -= amount;
+        bool success = i_dsc.transferFrom(msg.sender, address(this), amount);
+        //  This conditional is hypothetically unreachable
+        if (!success) {
+            revert DSCEngine__TransferFailed();
+        }
+        i_dsc.burn(amount);
+        _revertIfHealthFactorIsBroken(msg.sender); // This would never hit
+    }
 
     function liquidate() external {}
 
