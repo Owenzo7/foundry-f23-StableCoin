@@ -3,13 +3,13 @@
 pragma solidity ^0.8.17;
 
 import {Test} from "forge-std/Test.sol";
-import {DeployDsc} from "../../script/DeployDsc.s.sol";
+import {Deploydsc} from "../../script/DeployDsc.s.sol";
 import {DecentralizedStableCoin} from "../../src/DecentralizedStableCoin.sol";
 import {DSCEngine} from "../../src/DSCEngine.sol";
 import {HelperConfig} from "../../script/HelperConfig.s.sol";
 
 contract DscEngineTest is Test {
-    DeployDsc deployer;
+    Deploydsc deployer;
     DecentralizedStableCoin dsc;
     DSCEngine dsce;
     HelperConfig config;
@@ -17,8 +17,8 @@ contract DscEngineTest is Test {
     address weth;
 
     function setUp() public {
-        deployer = new DeployDsc();
-        (dsc, dsce, config) = new deployer.run();
+        deployer = new Deploydsc();
+        (dsc, dsce, config) = deployer.run();
         (ethUsdPriceFeed,, weth,,) = config.activeNetworkConfig();
     }
 

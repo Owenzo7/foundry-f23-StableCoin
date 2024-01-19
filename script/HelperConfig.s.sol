@@ -3,8 +3,8 @@
 pragma solidity ^0.8.17;
 
 import {Script} from "forge-std/Script.sol";
-import {MockV3Aggregator} from "@chainlink/contracts/src/v0.6/tests/MockV3Aggregator.sol";
-import {ERC20Mock} from "@openzeppelin/contracts/mocks/token/ERC20Mock.sol";
+import {MockV3Aggregator} from "@chainlink/contracts/src/v0.8/tests/MockV3Aggregator.sol";
+import {ERC20Mock} from "@openzeppelin/contracts/mocks/ERC20Mock.sol";
 
 contract HelperConfig is Script {
     uint8 public constant DECIMALS = 8;
