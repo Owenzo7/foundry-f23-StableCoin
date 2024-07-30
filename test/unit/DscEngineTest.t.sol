@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.17;
 
-import {Test} from "forge-std/Test.sol";
+import {Test, console} from "forge-std/Test.sol";
 import {Deploydsc} from "../../script/DeployDsc.s.sol";
 import {DecentralizedStableCoin} from "../../src/DecentralizedStableCoin.sol";
 import {DSCEngine} from "../../src/DSCEngine.sol";
@@ -17,6 +17,8 @@ contract DscEngineTest is Test {
     address ethUsdPriceFeed;
     address btcUsdPriceFeed;
     address weth;
+    address public DUPLICATE1 = address(0x123);
+    address public DUPLICATE2 = address(0x123);
 
     uint256 public constant AMOUNT_COLLATERAL = 10 ether;
     uint256 public constant STARTING_ERC20_BALANCE = 10 ether;
@@ -43,6 +45,20 @@ contract DscEngineTest is Test {
         priceFeedAddresses.push(btcUsdPriceFeed);
 
         vm.expectRevert(DSCEngine.DSCEngine__TokenAddressesAndPriceFeedAddressesMustBeSameLength.selector);
+        new DSCEngine(tokenAddress, priceFeedAddresses, address(dsc));
+    }
+
+    function testRevertsIfConstrutordetectsDuplicateTokenAddresses() public {
+        tokenAddress.push(DUPLICATE1);
+        tokenAddress.push(DUPLICATE2);
+
+        console.log("This is Duplicate1 Addr::", DUPLICATE1);
+        console.log("This is Duplicate1 Addr::", DUPLICATE2);
+
+        priceFeedAddresses.push(ethUsdPriceFeed);
+        priceFeedAddresses.push(btcUsdPriceFeed);
+
+        vm.expectRevert();
         new DSCEngine(tokenAddress, priceFeedAddresses, address(dsc));
     }
 

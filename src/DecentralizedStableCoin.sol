@@ -45,11 +45,8 @@ contract DecentralizedStableCoin is ERC20Burnable, Ownable {
     error DecentralizedStableCoin__BurnAmountExceedsBalance();
     error DecentralizedStableCoin__NotZeroAddress();
 
-
-
-// @audit-ok --> Just naming the StableCoin
+    // @audit-ok --> Just naming the StableCoin
     constructor() ERC20("DecentralizedStableCoin", "DSC") {}
-
 
     // @audit-ok --> Access control is fine
     // @audit-ok --> Overall function is fine.

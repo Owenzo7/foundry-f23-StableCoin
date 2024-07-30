@@ -89,6 +89,7 @@ contract Handler is Test {
     //     ethUsdPriceFeed.updateAnswer(newPriceInt);
     // }
 
+    // @audit-info -> helps in the randomization selection of valid erc20 tokens.
     function _getCollateralFromSeed(uint256 collateralSeed) private view returns (ERC20Mock) {
         if (collateralSeed % 2 == 0) {
             return weth;
