@@ -45,6 +45,7 @@ contract DSCEngine is ReentrancyGuard {
     error DSCEngine__HealthFactorNotImproved();
     error DSCEngine__DuplicateTokenAddressFound(address tokenAddress);
 
+
     using OracleLib for AggregatorV3Interface;
 
     //////////////////////
@@ -141,7 +142,7 @@ contract DSCEngine is ReentrancyGuard {
     * @param amountCollateral The amount of collateral to deposit
     */
 
-    // @audit-ok --> this function is valid.
+    // @audit-issue --> Need to check whether it can deposit collateral to itself.
     function depositCollateral(address tokenCollateralAddress, uint256 amountCollateral)
         public
         morethanZero(amountCollateral)
@@ -232,12 +233,15 @@ contract DSCEngine is ReentrancyGuard {
      * @notice: A known bug would be if the protocol was only 100% collateralized, we wouldn't be able to liquidate anyone.
      * For example, if the price of the collateral plummeted before anyone could be liquidated.
      */
-    //  @audit-ok --> function seems fine.
+    //  @audit-issue --> check if user can liquidate himself.
     function liquidate(address collateral, address user, uint256 debtToCover)
         external
         morethanZero(debtToCover)
         nonReentrant
     {
+
+        
+
         // @audit-ok --> check health factor valid.
         // Need to check the health factor of the user
         uint256 startingUserHealthFactor = _healthFactor(user);
@@ -259,10 +263,14 @@ contract DSCEngine is ReentrancyGuard {
         // We should implement a feature to liquidate in the event the protocol is insolvent.
         // Add sweep extra amounts into a treasury.
 
-        // @audit-ok
+        // If User's collateral tanks below the health factor, that means he or she cant pay the debt he owes the protocol.................
+        // An incentive is placed like what I'm seeing below
+        ////////////////////////////////////////////////////////////
+
+        // @audit-info --> basically the bonus the liquidator may get when paying off the debt.
         uint256 bonusCollateral = (tokenAmountFromDebtCovered * LIQUIDATION_BONUS) / LIQUIDATION_PRECISION;
 
-        // @audit-ok --> makes sense
+        // @audit-info --> the total amount of what the liquidator may get.
         uint256 totalCollateraltoRedeem = tokenAmountFromDebtCovered + bonusCollateral;
 
         // @audit-ok
@@ -335,7 +343,7 @@ contract DSCEngine is ReentrancyGuard {
     * If a user goes below 1, then they can get liquidated
 
     */
-    // @audit-issue --> Rouding issue.
+    // @audit-issue --> What if collateral value is 0.
     function _healthFactor(address user) private view returns (uint256) {
         // total DSC minted
         // total collateral VALUE
@@ -373,7 +381,7 @@ contract DSCEngine is ReentrancyGuard {
 
     function getAccountCollateralValue(address user) public view returns (uint256 totalCollateralValueInUsd) {
         // Loop through each collateral token, get the amount they have deposited and map it to the price, to get the USD value.
-        // @audit-issue --> DOS
+        // @audit-issue --> DOS May cause the vast majority of collateral tokens in the array to not get matched with the USD value.
         for (uint256 i = 0; i < s_collateralTokens.length; i++) {
             address token = s_collateralTokens[i];
             uint256 amount = s_collateralDeposited[user][token];
@@ -440,5 +448,9 @@ contract DSCEngine is ReentrancyGuard {
 
     function getHealthFactor(address user) external view returns (uint256) {
         return _healthFactor(user);
+    }
+
+    function getAmountOfDSCminted(address user) external view returns (uint256) {
+        return s_DSCMinted[user];
     }
 }

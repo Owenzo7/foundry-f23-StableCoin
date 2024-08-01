@@ -22,6 +22,7 @@ contract DscEngineTest is Test {
 
     uint256 public constant AMOUNT_COLLATERAL = 10 ether;
     uint256 public constant STARTING_ERC20_BALANCE = 10 ether;
+    uint256 public constant AMOUNT_SELFCOLLATERAL = 3 ether;
 
     address public USER = makeAddr("user");
 
@@ -60,6 +61,48 @@ contract DscEngineTest is Test {
 
         vm.expectRevert();
         new DSCEngine(tokenAddress, priceFeedAddresses, address(dsc));
+    }
+
+    function testIfWETHsentDirectlyToContractIsGivenAMintedDsc() public {
+        // User starts the transaction
+        vm.startPrank(USER);
+        // User sends his WETH to the Dsc contract directly.
+        // STARTING_ERC20_BALANCE ==> 10 ether.
+        ERC20Mock(weth).transfer(address(dsc), STARTING_ERC20_BALANCE);
+        vm.stopPrank();
+
+        // Displays the amount of Dsc that the User acquired after the tx.
+        console.log("This is the amount of Dsc that the User has minted::", dsce.getAmountOfDSCminted(USER));
+    }
+
+    function testIfUSERcanLiquidatehimself() public {
+        vm.startPrank(USER);
+        ERC20Mock(weth).approve(address(dsce), AMOUNT_COLLATERAL);
+        // User deposits Collateral
+        dsce.depositCollateralAndMintDsc(weth, AMOUNT_COLLATERAL, 2e18);
+        vm.stopPrank();
+
+        uint256 amountofDScForUser = dsc.balanceOf(USER);
+
+        console.log("This is the amount of DSC that USER has::", amountofDScForUser);
+
+        // User now trys to liquidate himself
+        vm.startPrank(USER);
+        dsce.liquidate(weth, USER, amountofDScForUser);
+        vm.stopPrank();
+    }
+
+    // @follow-up
+    function testIfdsceEngineContractisDepositingCollateralToItself() public {
+        // Mint some WETH(10 ether) to the DSCE engine contract.
+        ERC20Mock(weth).mint(address(dsce), STARTING_ERC20_BALANCE);
+        ERC20Mock(weth).approve(address(dsce), STARTING_ERC20_BALANCE);
+
+        // Deposit collateral to self
+        vm.startPrank(address(dsce));
+
+        dsce.depositCollateral(weth, AMOUNT_SELFCOLLATERAL);
+        vm.stopPrank();
     }
 
     ///////////////////////////////
